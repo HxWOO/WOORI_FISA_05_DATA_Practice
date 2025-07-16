@@ -48,3 +48,4 @@ tornado
 traitlets
 tzdata
 wcwidth
+streamlit
