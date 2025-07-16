@@ -7,11 +7,11 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 # 시각화 함수 임포트
-from visualize_age_plotly import create_age_plotly_chart
-from visualize_edu_plotly import create_edu_plotly_chart
-from visualize_sex_plotly import create_sex_plotly_chart
-from visualize_type_plotly import create_type_plotly_chart
-from visualize_region_plotly import create_region_plotly_chart
+from employ_analysis.visualize_age_plotly import create_age_plotly_chart
+from employ_analysis.visualize_edu_plotly import create_edu_plotly_chart
+from employ_analysis.visualize_sex_plotly import create_sex_plotly_chart
+from employ_analysis.visualize_type_plotly import create_type_plotly_chart
+from employ_analysis.visualize_region_plotly import create_region_plotly_chart
 
 st.set_page_config(
     page_title="시각화 자료",
