@@ -4,6 +4,7 @@ import plotly.express as px
 import json
 import requests
 import os
+from pathlib import Path
 
 st.set_page_config(
     page_title="장애인 시설 지도",
@@ -15,26 +16,24 @@ st.title("🗺️ 장애인 시설 필요도 지도")
 st.write("이 페이지에서는 보건복지부 데이터를 기반으로 한 장애인 시설의 필요도를 지도에서 확인할 수 있습니다.")
 
 # Define data paths
-data_dir = "C:/ITStudy/WOORI_FISA_05_DATA_Practice-main/data"
-population_file = os.path.join(data_dir, 'disability_population.csv')
-sigungu_population_file = os.path.join(data_dir, '시군구별_장애정도별_성별_등록장애인수_20250717111030.csv')
-weekly_facilities_file = os.path.join(data_dir, 'disability_facilities.csv')
-welfare_facilities_file = os.path.join(data_dir, '보건복지부_장애인복지관 현황_20240425_utf8.csv')
+data_dir = f"{Path(__file__).parent.parent}/data/"
+sigungu_population_file = data_dir + '시군구별_장애정도별_성별_등록장애인수_20250717111030.csv'
+weekly_facilities_file = data_dir + 'disability_facilities.csv'
+welfare_facilities_file = data_dir + '보건복지부_장애인복지관 현황_20240425_utf8.csv'
 
 # --- Load Data ---
 @st.cache_data
 def load_data():
     try:
-        df_population = pd.read_csv(population_file, encoding='utf-8-sig', header=1)
         df_sigungu_population = pd.read_csv(sigungu_population_file, encoding='utf-8-sig', header=2)
         df_weekly_facilities = pd.read_csv(weekly_facilities_file, encoding='utf-8-sig')
         df_welfare_facilities = pd.read_csv(welfare_facilities_file, encoding='utf-8-sig')
-        return df_population, df_sigungu_population, df_weekly_facilities, df_welfare_facilities
+        return df_sigungu_population, df_weekly_facilities, df_welfare_facilities
     except Exception as e:
         st.error(f"데이터 파일을 읽는 중 오류가 발생했습니다: {e}")
         return None, None, None, None
 
-df_population, df_sigungu_population, df_weekly_facilities, df_welfare_facilities = load_data()
+df_sigungu_population, df_weekly_facilities, df_welfare_facilities = load_data()
 
 # --- Load GeoJSON ---
 @st.cache_data
@@ -50,41 +49,41 @@ def load_geojson():
 
 geojson = load_geojson()
 
-if df_population is not None and df_sigungu_population is not None and df_weekly_facilities is not None and df_welfare_facilities is not None and geojson:
-    # --- Common Data Standardization Function ---
-    def standardize_facilities_data(df_facilities_raw, facility_type, level='province'):
-        short_to_full_map = {
-            '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시',
-            '인천': '인천광역시', '광주': '광주광역시', '대전': '대전광역시',
-            '울산': '울산광역시', '세종': '세종특별자치시', '경기': '경기도',
-            '강원': '강원도', '충북': '충청북도', '충남': '충청남도',
-            '전북': '전라북도', '전남': '전라남도', '경북': '경상북도',
-            '경남': '경상남도', '제주': '제주특별자치도'
-        }
-        df_facilities_raw['시도_전체이름'] = df_facilities_raw['시도'].str.strip().map(short_to_full_map)
+# --- Common Data Standardization Function ---
+def standardize_facilities_data(df_facilities_raw, facility_type, level='province'):
+    short_to_full_map = {
+        '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시',
+        '인천': '인천광역시', '광주': '광주광역시', '대전': '대전광역시',
+        '울산': '울산광역시', '세종': '세종특별자치시', '경기': '경기도',
+        '강원': '강원도', '충북': '충청북도', '충남': '충청남도',
+        '전북': '전라북도', '전남': '전라남도', '경북': '경상북도',
+        '경남': '경상남도', '제주': '제주특별자치도'
+    }
+    df_facilities_raw['시도_전체이름'] = df_facilities_raw['시도'].str.strip().map(short_to_full_map)
+    if level == 'province':
+        facilities_by_area = df_facilities_raw.groupby('시도_전체이름').size().reset_index(name=f'{facility_type}수')
+        facilities_by_area.rename(columns={'시도_전체이름': '시도'}, inplace=True)
+    elif level == 'sigungu':
+        # Combine 시도_전체이름 and 시군구 for unique identifier
+        df_facilities_raw['시군구_전체이름'] = df_facilities_raw['시도_전체이름'] + ' ' + df_facilities_raw['시군구']
+        facilities_by_area = df_facilities_raw.groupby('시군구_전체이름').size().reset_index(name=f'{facility_type}수')
+        facilities_by_area.rename(columns={'시군구_전체이름': '시군구_전체이름'}, inplace=True)
+    return facilities_by_area
 
-        if level == 'province':
-            facilities_by_area = df_facilities_raw.groupby('시도_전체이름').size().reset_index(name=f'{facility_type}수')
-            facilities_by_area.rename(columns={'시도_전체이름': '시도'}, inplace=True)
-        elif level == 'sigungu':
-            # Combine 시도_전체이름 and 시군구 for unique identifier
-            df_facilities_raw['시군구_전체이름'] = df_facilities_raw['시도_전체이름'] + ' ' + df_facilities_raw['시군구']
-            facilities_by_area = df_facilities_raw.groupby('시군구_전체이름').size().reset_index(name=f'{facility_type}수')
-            facilities_by_area.rename(columns={'시군구_전체이름': '시군구_전체이름'}, inplace=True)
-        return facilities_by_area
+# --- Process Sigungu Population Data ---
+@st.cache_data
+def process_sigungu_population_data(df_sigungu_population):
+    df_sigungu_population.columns = ['시도_대분류', '시군구', '총인구_소계', '총인구_남자', '총인구_여자',
+                                 '심한장애_소계', '심한장애_남자', '심한장애_여자',
+                                 '심하지않은장애_소계', '심하지않은장애_남자', '심하지않은장애_여자']
+    df_filtered = df_sigungu_population[~df_sigungu_population['시도_대분류'].isin(['전국'])].copy()
+    df_filtered = df_filtered[~df_filtered['시군구'].isin(['소계'])].copy()
+    df_population_sigungu = df_filtered[['시도_대분류', '시군구', '총인구_소계']].copy()
+    df_population_sigungu['총인구_소계'] = pd.to_numeric(df_population_sigungu['총인구_소계'], errors='coerce')
+    df_population_sigungu.dropna(subset=['총인구_소계'], inplace=True)
+    return df_population_sigungu
 
-    # --- Process Sigungu Population Data ---
-    @st.cache_data
-    def process_sigungu_population_data(df_sigungu_population):
-        df_sigungu_population.columns = ['시도_대분류', '시군구', '총인구_소계', '총인구_남자', '총인구_여자',
-                                     '심한장애_소계', '심한장애_남자', '심한장애_여자',
-                                     '심하지않은장애_소계', '심하지않은장애_남자', '심하지않은장애_여자']
-        df_filtered = df_sigungu_population[~df_sigungu_population['시도_대분류'].isin(['전국'])].copy()
-        df_filtered = df_filtered[~df_filtered['시군구'].isin(['소계'])].copy()
-        df_population_sigungu = df_filtered[['시도_대분류', '시군구', '총인구_소계']].copy()
-        df_population_sigungu['총인구_소계'] = pd.to_numeric(df_population_sigungu['총인구_소계'], errors='coerce')
-        df_population_sigungu.dropna(subset=['총인구_소계'], inplace=True)
-        return df_population_sigungu
+if df_sigungu_population is not None and df_weekly_facilities is not None and df_welfare_facilities is not None and geojson:
 
     df_population_sigungu = process_sigungu_population_data(df_sigungu_population)
     df_population_sigungu['시군구_전체이름'] = df_population_sigungu['시도_대분류'] + ' ' + df_population_sigungu['시군구']
@@ -98,33 +97,11 @@ if df_population is not None and df_sigungu_population is not None and df_weekly
     print("Names from GeoJSON:")
     print(sorted(list(set(geojson_names))))
 
-    # --- Standardize Province Population Data (Existing Logic) ---
-    try:
-        population_total = df_population[df_population['장애유형별(1)'].str.strip() == '합계'].copy()
-        population_total = population_total.iloc[:, [0, 2]]
-        population_total.columns = ['시도', '장애인구수']
-        population_total['장애인구수'] = pd.to_numeric(population_total['장애인구수'], errors='coerce')
-        population_total.dropna(subset=['장애인구수'], inplace=True)
-        population_by_province = population_total[~population_total['시도'].isin(['전국', '소계'])].copy()
-        population_by_province['시도'] = population_by_province['시도'].str.strip().replace({
-            '강원특별자치도': '강원도',
-            '전북특별자치도': '전라북도'
-        })
-    except KeyError as e:
-        st.error(f"인구 데이터 처리 중 오류가 발생했습니다: {e}. 컬럼 이름을 확인해주세요.")
-        st.stop()
-
     # --- Process Weekly Facilities Data (Province Level) ---
     weekly_facilities_by_province = standardize_facilities_data(df_weekly_facilities, '주간이용시설', level='province')
-    df_merged_weekly_province = pd.merge(population_by_province, weekly_facilities_by_province, on='시도', how='left')
-    df_merged_weekly_province['주간이용시설수'] = df_merged_weekly_province['주간이용시설수'].fillna(0).astype(int)
-    df_merged_weekly_province['주간이용시설필요지수'] = df_merged_weekly_province['장애인구수'] / (df_merged_weekly_province['주간이용시설수'] + 1)
 
     # --- Process Welfare Facilities Data (Province Level) ---
     welfare_facilities_by_province = standardize_facilities_data(df_welfare_facilities, '복지관', level='province')
-    df_merged_welfare_province = pd.merge(population_by_province, welfare_facilities_by_province, on='시도', how='left')
-    df_merged_welfare_province['복지관수'] = df_merged_welfare_province['복지관수'].fillna(0).astype(int)
-    df_merged_welfare_province['복지관필요지수'] = df_merged_welfare_province['장애인구수'] / (df_merged_welfare_province['복지관수'] + 1)
 
     # --- Process Weekly Facilities Data (Sigungu Level) ---
     weekly_facilities_by_sigungu = standardize_facilities_data(df_weekly_facilities, '주간이용시설', level='sigungu')
@@ -168,14 +145,6 @@ if df_population is not None and df_sigungu_population is not None and df_weekly
         # ... more si-gun-gu areas
     }
     df_sigungu_area = pd.DataFrame(list(sigungu_area_data.items()), columns=['시군구_전체이름', '면적(㎢)'])
-
-    # Merge area data with merged dataframes (Province Level)
-    df_merged_weekly_province = pd.merge(df_merged_weekly_province, df_area, on='시도', how='left')
-    df_merged_welfare_province = pd.merge(df_merged_welfare_province, df_area, on='시도', how='left')
-
-    # Calculate facilities per area (Province Level)
-    df_merged_weekly_province['주간이용시설_밀도'] = df_merged_weekly_province['주간이용시설수'] / df_merged_weekly_province['면적(㎢)']
-    df_merged_welfare_province['복지관_밀도'] = df_merged_welfare_province['복지관수'] / df_merged_welfare_province['면적(㎢)']
 
     # Merge area data with merged dataframes (Sigungu Level)
     df_merged_weekly_sigungu = pd.merge(df_merged_weekly_sigungu, df_sigungu_area, on='시군구_전체이름', how='left')
@@ -224,46 +193,18 @@ if df_population is not None and df_sigungu_population is not None and df_weekly
 else:
     st.warning("데이터 또는 GeoJSON을 불러오지 못하여 지도를 표시할 수 없습니다.")
 
-    # --- Standardize Province Population Data (Existing Logic) ---
-    try:
-        population_total = df_population[df_population['장애유형별(1)'].str.strip() == '합계'].copy()
-        population_total = population_total.iloc[:, [0, 2]]
-        population_total.columns = ['시도', '장애인구수']
-        population_total['장애인구수'] = pd.to_numeric(population_total['장애인구수'], errors='coerce')
-        population_total.dropna(subset=['장애인구수'], inplace=True)
-        population_by_province = population_total[~population_total['시도'].isin(['전국', '소계'])].copy()
-        population_by_province['시도'] = population_by_province['시도'].str.strip().replace({
-            '강원특별자치도': '강원도',
-            '전북특별자치도': '전라북도'
-        })
-    except KeyError as e:
-        st.error(f"인구 데이터 처리 중 오류가 발생했습니다: {e}. 컬럼 이름을 확인해주세요.")
-        st.stop()
-
     # --- Process Weekly Facilities Data (Province Level) ---
     weekly_facilities_by_province = standardize_facilities_data(df_weekly_facilities, '주간이용시설', level='province')
-    df_merged_weekly_province = pd.merge(population_by_province, weekly_facilities_by_province, on='시도', how='left')
-    df_merged_weekly_province['주간이용시설수'] = df_merged_weekly_province['주간이용시설수'].fillna(0).astype(int)
-    df_merged_weekly_province['주간이용시설필요지수'] = df_merged_weekly_province['장애인구수'] / (df_merged_weekly_province['주간이용시설수'] + 1)
 
     # --- Process Welfare Facilities Data (Province Level) ---
     welfare_facilities_by_province = standardize_facilities_data(df_welfare_facilities, '복지관', level='province')
-    df_merged_welfare_province = pd.merge(population_by_province, welfare_facilities_by_province, on='시도', how='left')
-    df_merged_welfare_province['복지관수'] = df_merged_welfare_province['복지관수'].fillna(0).astype(int)
-    df_merged_welfare_province['복지관필요지수'] = df_merged_welfare_province['장애인구수'] / (df_merged_welfare_province['복지관수'] + 1)
 
     # --- Process Weekly Facilities Data (Sigungu Level) ---
     weekly_facilities_by_sigungu = standardize_facilities_data(df_weekly_facilities, '주간이용시설', level='sigungu')
-    df_merged_weekly_sigungu = pd.merge(df_population_sigungu, weekly_facilities_by_sigungu, on='시군구_전체이름', how='left')
-    df_merged_weekly_sigungu['주간이용시설수'] = df_merged_weekly_sigungu['주간이용시설수'].fillna(0).astype(int)
-    df_merged_weekly_sigungu['주간이용시설필요지수'] = df_merged_weekly_sigungu['총인구_소계'] / (df_merged_weekly_sigungu['주간이용시설수'] + 1)
-
+    
     # --- Process Welfare Facilities Data (Sigungu Level) ---
     welfare_facilities_by_sigungu = standardize_facilities_data(df_welfare_facilities, '복지관', level='sigungu')
-    df_merged_welfare_sigungu = pd.merge(df_population_sigungu, welfare_facilities_by_sigungu, on='시군구_전체이름', how='left')
-    df_merged_welfare_sigungu['복지관수'] = df_merged_welfare_sigungu['복지관수'].fillna(0).astype(int)
-    df_merged_welfare_sigungu['복지관필요지수'] = df_merged_welfare_sigungu['총인구_소계'] / (df_merged_welfare_sigungu['복지관수'] + 1)
-
+    
     # --- Area Data ---
     area_data = {
         '서울특별시': 605.23,
@@ -364,28 +305,11 @@ else:
     }
     df_sigungu_area = pd.DataFrame(list(sigungu_area_data.items()), columns=['시군구_전체이름', '면적(㎢)'])
 
-    # Merge area data with merged dataframes (Province Level)
-    df_merged_weekly_province = pd.merge(df_merged_weekly_province, df_area, on='시도', how='left')
-    df_merged_welfare_province = pd.merge(df_merged_welfare_province, df_area, on='시도', how='left')
-
-    # Calculate facilities per area (Province Level)
-    df_merged_weekly_province['주간이용시설_밀도'] = df_merged_weekly_province['주간이용시설수'] / df_merged_weekly_province['면적(㎢)']
-    df_merged_welfare_province['복지관_밀도'] = df_merged_welfare_province['복지관수'] / df_merged_welfare_province['면적(㎢)']
-
-    # Merge area data with merged dataframes (Sigungu Level)
-    df_merged_weekly_sigungu = pd.merge(df_merged_weekly_sigungu, df_sigungu_area, on='시군구_전체이름', how='left')
-    df_merged_welfare_sigungu = pd.merge(df_merged_welfare_sigungu, df_sigungu_area, on='시군구_전체이름', how='left')
-
-    # Calculate facilities per area (Sigungu Level)
-    df_merged_weekly_sigungu['주간이용시설_밀도'] = df_merged_weekly_sigungu['주간이용시설수'] / df_merged_weekly_sigungu['면적(㎢)']
-    df_merged_welfare_sigungu['복지관_밀도'] = df_merged_welfare_sigungu['복지관수'] / df_merged_welfare_sigungu['면적(㎢)']
-
     tab3, tab4 = st.tabs(["시군구별 주간이용시설 필요도", "시군구별 장애인복지관 필요도"])
 
     with tab3:
         st.header("시군구별 장애인구수 대비 주간이용시설 필요도")
         fig_weekly_sigungu = px.choropleth(
-            df_merged_weekly_sigungu,
             geojson=geojson,
             locations='시군구',
             featureidkey="properties.name",
@@ -402,7 +326,6 @@ else:
     with tab4:
         st.header("시군구별 장애인구수 대비 장애인복지관 필요도")
         fig_welfare_sigungu = px.choropleth(
-            df_merged_welfare_sigungu,
             geojson=geojson,
             locations='시군구',
             featureidkey="properties.name",
