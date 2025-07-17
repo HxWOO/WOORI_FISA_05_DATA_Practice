@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from employ_analysis.constants import province_geojson_name_map, reverse_province_geojson_name_map, province_coords, area_data
+from .constants import province_geojson_name_map, reverse_province_geojson_name_map, province_coords, area_data
 
 def plot_regional_map_chart(df, geojson_data):
     st.write("### 시도도도별 장애인구 총계 (성별: 계) - 지도 시각화")

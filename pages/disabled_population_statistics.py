@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from employ_analysis.load_data import load_disabled_population_data, load_korea_geojson
-from employ_analysis.visualize_population import plot_animated_pie_chart, plot_national_trend_line_chart, plot_regional_map_chart, plot_gender_trend_line_chart
+from disable_pop.visualize_population import plot_animated_pie_chart, plot_national_trend_line_chart, plot_regional_map_chart, plot_gender_trend_line_chart
 
 st.set_page_config(layout="wide")
 
