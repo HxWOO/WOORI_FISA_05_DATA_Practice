@@ -18,15 +18,11 @@ def _get_column_for_year(df, base_col_name, year):
     if col_name_1_2 in df.columns:
         return col_name_1_2
 
-    # 전체 연도 데이터 시도 (2008-2021년 데이터 형식)
+    # 전체 연도 데이터 시도 (2013-2021년 데이터 형식)
     col_name_full_year = f'{year}_{base_col_name}'
     if col_name_full_year in df.columns:
         return col_name_full_year
-
-    # 2008년 데이터는 접미사가 없음
-    if year == 2008 and base_col_name in df.columns:
-        return base_col_name
-
+    
     return None # 해당 연도의 컬럼을 찾을 수 없음
 
 def create_region_plotly_chart(year):
@@ -41,7 +37,7 @@ def create_region_plotly_chart(year):
     df = df[df[category_col] != '전체'].copy()
 
     # 연도에 맞는 취업자 수 컬럼 찾기
-    # '취업자 (천명)' 대신 '취업자 (명)'으로 수정
+    # '취업자 (명)' 컬럼
     employed_col_name = _get_column_for_year(df, '취업자 (명)', year)
 
     if employed_col_name is None:

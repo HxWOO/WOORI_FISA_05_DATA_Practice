@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio # Not used directly in the function, but kept for consistency if needed elsewhere
 import os
+import plotly.express as px
 
 def _get_column_for_year(df, base_col_name, year):
     """지정된 연도와 기본 컬럼명에 따라 가장 적합한 컬럼명을 찾습니다.
@@ -18,14 +19,10 @@ def _get_column_for_year(df, base_col_name, year):
     if col_name_1_2 in df.columns:
         return col_name_1_2
 
-    # 전체 연도 데이터 시도 (2008-2021년 데이터 형식)
+    # 전체 연도 데이터 시도 (2013-2021년 데이터 형식)
     col_name_full_year = f'{year}_{base_col_name}'
     if col_name_full_year in df.columns:
         return col_name_full_year
-
-    # 2008년 데이터는 접미사가 없음
-    if year == 2008 and base_col_name in df.columns:
-        return base_col_name
 
     return None # 해당 연도의 컬럼을 찾을 수 없음
 
@@ -47,14 +44,12 @@ def create_type_plotly_chart(year):
         print(f"오류: {year}년도에 해당하는 고용률 컬럼을 찾을 수 없습니다.")
         return None
 
-    df[employment_col_name] = pd.to_numeric(df[employment_col_name], errors='coerce')
-
     fig = go.Figure(go.Bar(
         x=df[category_col],
         y=df[employment_col_name],
         text=df[employment_col_name].round(1),
         textposition='auto',
-        marker_color='#7f7f7f'
+        marker_color=px.colors.qualitative.Plotly # Plotly 기본 색상 팔레트 사용
     ))
 
     fig.update_layout(

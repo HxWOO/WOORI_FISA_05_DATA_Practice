@@ -12,6 +12,7 @@ from employ_analysis.visualize_edu_plotly import create_edu_plotly_chart
 from employ_analysis.visualize_sex_plotly import create_sex_plotly_chart
 from employ_analysis.visualize_type_plotly import create_type_plotly_chart
 from employ_analysis.visualize_region_plotly import create_region_plotly_chart
+from employ_analysis.visualize_sex_pie_plotly import create_sex_pie_chart
 
 st.set_page_config(
     page_title="시각화 자료",
@@ -63,8 +64,8 @@ else:
     st.warning(f"{edu_year}년 학력 수준별 고용률 및 실업률 자료가 없습니다.")
 
 # 3. 성별 경제활동참가율
-st.header("성별 경제활동참가율")
-st.write("남성 장애인과 여성 장애인의 경제활동참가율을 비교하는 인터랙티브 막대 그래프입니다.")
+st.header("성별 경제활동 지표")
+st.write("남성 장애인과 여성 장애인의 경제활동참가율 및 분포를 비교하는 인터랙티브 그래프입니다.")
 sex_year = st.slider(
     "성별 데이터를 보고 싶은 연도를 선택하세요:",
     min_value=2013,
@@ -73,11 +74,24 @@ sex_year = st.slider(
     step=1,
     key='sex_year_slider' # 고유한 키 추가
 )
-fig_sex = create_sex_plotly_chart(sex_year)
-if fig_sex:
-    st.plotly_chart(fig_sex, use_container_width=True)
-else:
-    st.warning(f"{sex_year}년 성별 경제활동참가율 자료가 없습니다.")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("성별 경제활동참가율 (막대 그래프)")
+    fig_sex_bar = create_sex_plotly_chart(sex_year)
+    if fig_sex_bar:
+        st.plotly_chart(fig_sex_bar, use_container_width=True)
+    else:
+        st.warning(f"{sex_year}년 성별 경제활동참가율 자료가 없습니다.")
+
+with col2:
+    st.subheader("성별 경제활동참가율 분포 (파이 차트)")
+    fig_sex_pie = create_sex_pie_chart(sex_year)
+    if fig_sex_pie:
+        st.plotly_chart(fig_sex_pie, use_container_width=True)
+    else:
+        st.warning(f"{sex_year}년 성별 경제활동참가율 분포 자료가 없습니다.")
 
 # 4. 장애 유형별 고용률
 st.header("장애 유형별 고용률")
