@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from employ_analysis.constants import province_geojson_name_map, reverse_province_geojson_name_map, province_coords, area_data
+from .constants import province_geojson_name_map, reverse_province_geojson_name_map, province_coords, area_data
 
 def plot_animated_pie_chart(df_national_total):
     st.write("### 연도별 전국 장애유형별 인구 비율 (성별: 계) - 애니메이션")
