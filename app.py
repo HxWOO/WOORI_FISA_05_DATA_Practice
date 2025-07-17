@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+from employ_analysis import load_data, run_analysis
+from pathlib import Path
 
 st.set_page_config(
     page_title="장애인 경제활동 분석 대시보드",
@@ -7,6 +9,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# 앱을 시작할때, 데이터 전처리 시작
+load_data.load_processed_data()
+
 
 st.title("📊 장애인 경제활동 분석 대시보드")
 
@@ -26,4 +32,4 @@ st.markdown("""
 st.info("왼쪽 사이드바에서 '시각화 자료' 페이지를 선택해주세요.")
 
 # Streamlit의 멀티페이지 앱 구조는 pages/ 디렉토리에 파일을 두는 것으로 자동 인식됩니다.
-# 별도의 st.sidebar.page_link 등은 필요하지 않습니다.
+

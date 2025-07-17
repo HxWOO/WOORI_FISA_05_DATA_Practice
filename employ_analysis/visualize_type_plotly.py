@@ -18,14 +18,10 @@ def _get_column_for_year(df, base_col_name, year):
     if col_name_1_2 in df.columns:
         return col_name_1_2
 
-    # 전체 연도 데이터 시도 (2008-2021년 데이터 형식)
+    # 전체 연도 데이터 시도 (2013-2021년 데이터 형식)
     col_name_full_year = f'{year}_{base_col_name}'
     if col_name_full_year in df.columns:
         return col_name_full_year
-
-    # 2008년 데이터는 접미사가 없음
-    if year == 2008 and base_col_name in df.columns:
-        return base_col_name
 
     return None # 해당 연도의 컬럼을 찾을 수 없음
 
