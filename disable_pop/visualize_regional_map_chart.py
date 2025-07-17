@@ -4,7 +4,6 @@ import plotly.graph_objects as go
 from .constants import province_geojson_name_map, reverse_province_geojson_name_map, province_coords, area_data
 
 def plot_regional_map_chart(df, geojson_data):
-    st.write("### 시도도도별 장애인구 총계 (성별: 계) - 지도 시각화")
 
     df_region_all_years = df[
         (df['시도별'] != '전국') &
@@ -49,7 +48,17 @@ def plot_regional_map_chart(df, geojson_data):
         marker_line_width=0,
         name='인구 밀도',
         showlegend=True,
-        hovertemplate="<b>%{location}</b><br>인구 밀도: %{z:.2f}<extra></extra>"
+        hovertemplate="<b>%{location}</b><br>인구 밀도: %{z:.2f}<extra></extra>",
+        colorbar=dict(
+            orientation="v",
+            x=1.02, # Move to the right of the plot
+            xanchor="left",
+            y=0, # Align to the bottom
+            yanchor="bottom",
+            title="인구 밀도",
+            len=0.4, # Keep length reasonable
+            thickness=10 # Keep thickness reasonable
+        )
     )
 
     scatter_trace = go.Scattermapbox(
@@ -103,7 +112,16 @@ def plot_regional_map_chart(df, geojson_data):
         mapbox_style="carto-positron",
         mapbox_zoom=5,
         mapbox_center={"lat": 36.4, "lon": 127.8},
-        title_text='연도별 시도별 장애인구 총계 및 밀도 (성별: 계)',
+        title_text='연도별 시도별 장애인구 총계 및 밀도',
+        legend=dict(
+            x=0.02,
+            y=0.98,
+            yanchor='top',
+            xanchor='left',
+            bgcolor='rgba(255, 255, 255, 0.7)',
+            bordercolor='rgba(0, 0, 0, 0.5)',
+            borderwidth=1
+        ),
         updatemenus=[dict(
             type="buttons",
             buttons=[dict(label="Play",

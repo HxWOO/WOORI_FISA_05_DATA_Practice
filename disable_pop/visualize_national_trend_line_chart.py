@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.graph_objects as go
 
 def plot_national_trend_line_chart(df_national_total):
-    st.write("### 연도별 전국 장애인구 총계 추이 (성별: 계)")
 
     df_trend = df_national_total[df_national_total['장애유형별'] == '합계'].melt(id_vars=['시도별', '성별', '장애유형별'],
                                                                   var_name='연도', value_name='인구수')
@@ -17,9 +16,10 @@ def plot_national_trend_line_chart(df_national_total):
                                   name='총계 추이',
                                   line=dict(color='blue')))
 
-    fig_line.update_layout(title='연도별 전국 장애인구 총계 추이 (성별: 계)',
+    fig_line.update_layout(title='연도별 전국 장애인구 총계 추이',
                            xaxis_title='연도',
                            yaxis_title='인구수',
                            hovermode="x unified")
     fig_line.update_layout(hovermode="x unified")
+    fig_line.update_traces(hovertemplate='%{y:,}명')
     st.plotly_chart(fig_line, use_container_width=True)
