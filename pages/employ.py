@@ -13,6 +13,7 @@ from employ_analysis.visualize_sex_plotly import create_sex_plotly_chart
 from employ_analysis.visualize_type_plotly import create_type_plotly_chart
 from employ_analysis.visualize_region_plotly import create_region_plotly_chart
 from employ_analysis.visualize_sex_pie_plotly import create_sex_pie_chart
+from employ_analysis.visualize_total_eco_activity_time_series import create_total_eco_activity_time_series_chart
 
 st.set_page_config(
     page_title="시각화 자료",
@@ -22,6 +23,16 @@ st.set_page_config(
 
 st.title("📈 시각화 자료")
 st.write("이 페이지에서는 Plotly를 이용한 인터랙티브한 장애인 경제활동 데이터를 시각화한 결과를 볼 수 있습니다.")
+
+# 0. 연도별 장애인 경제활동인구수
+st.header("연도별 장애인 경제활동인구수")
+st.write("연도별 장애인 경제활동인구수를 보여주는 라인 그래프입니다.")
+fig_time = create_total_eco_activity_time_series_chart()
+if fig_time:
+    st.plotly_chart(fig_time, use_container_width=True)
+else:
+    st.warning(f"연도별 장애인 경제활동인구수 자료가 없습니다.")
+
 
 # 각 그래프별 연도 선택 및 시각화
 
