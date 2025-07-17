@@ -83,7 +83,9 @@ def create_total_eco_activity_time_series_chart():
         yaxis_title='경제활동인구 (명)',
         template='plotly_white',
         font=dict(family="Malgun Gothic, AppleGothic, NanumGothic, sans-serif"),
-        height=500
+        height=500,
+        yaxis_range=[0, time_series_data['Value'].max() * 1.1], # Y축 시작을 0으로, 최대값보다 약간 크게 설정
+        margin=dict(l=80, r=80, t=100, b=80) # 마진 조정
     )
 
     return fig
