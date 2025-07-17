@@ -80,14 +80,18 @@ def create_total_activity_time_series_chart():
         x=time_series_data['Year'],
         y=time_series_data['경제활동인구'],
         mode='lines+markers',
-        name='경제활동인구'
+        name='경제활동인구',
+        hovertemplate="""<b>%{x}년도,</b><br>""" +
+                    """<b>%{y:,}명</b>"""
     ))
 
     fig.add_trace(go.Scatter(
         x=time_series_data['Year'],
         y=time_series_data['비경제활동인구'],
         mode='lines+markers',
-        name='비경제활동인구'
+        name='비경제활동인구',
+        hovertemplate="""<b>%{x}년도,</b><br>""" +
+                    """<b>%{y:,}명</b>"""
     ))
 
     fig.update_layout(

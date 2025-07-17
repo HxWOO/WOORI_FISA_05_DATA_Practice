@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import plotly.io as pio # Not used directly in the function, but kept for consistency if needed elsewhere
 import os
 from plotly.subplots import make_subplots
+from pathlib import Path
 
 def _get_column_for_year(df, base_col_name, year):
     """지정된 연도와 기본 컬럼명에 따라 가장 적합한 컬럼명을 찾습니다.
@@ -28,7 +29,7 @@ def _get_column_for_year(df, base_col_name, year):
 
 def create_sex_plotly_chart(year):
     """지정된 연도의 성별 경제활동참가율 데이터를 Plotly로 시각화하여 Figure 객체를 반환합니다."""
-    file_path = 'results/processed_disable_sex.xlsx'
+    file_path = f"{Path(__file__).parent.parent}/results/processed_disable_sex.xlsx"
     if not os.path.exists(file_path):
         print(f"오류: '{file_path}' 파일을 찾을 수 없습니다.")
         return None
@@ -69,10 +70,11 @@ def create_sex_plotly_chart(year):
             y=df[employment_col_name],
             text=df[employment_col_name].round(1),
             textposition='auto',
-            marker_color=['#EF553B', '#636EFA'], # 색상 변경
+            marker_color=[ '#636EFA', '#EF553B'], # 색상 변경
             name='고용률'
         ), row=1, col=2)
 
+   
     fig.update_layout(
         title_text=f'<b>{year}년 성별 경제활동 지표</b>',
         title_x=0.5,
@@ -81,7 +83,7 @@ def create_sex_plotly_chart(year):
         template='plotly_white',
         font=dict(family="Malgun Gothic, AppleGothic, NanumGothic, sans-serif"),
         height=500,
-        showlegend=True
+        showlegend=False,
     )
 
     return fig

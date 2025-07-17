@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import plotly.io as pio # Not used directly in the function, but kept for consistency if needed elsewhere
 import os
 import plotly.express as px
+from pathlib import Path
 
 def _get_column_for_year(df, base_col_name, year):
     """지정된 연도와 기본 컬럼명에 따라 가장 적합한 컬럼명을 찾습니다.
@@ -28,7 +29,7 @@ def _get_column_for_year(df, base_col_name, year):
 
 def create_type_plotly_chart(year):
     """지정된 연도의 장애 유형별 고용률 데이터를 Plotly로 시각화하여 Figure 객체를 반환합니다."""
-    file_path = 'results/processed_disable_type.xlsx'
+    file_path = f"{Path(__file__).parent.parent}/results/processed_disable_type.xlsx"
     if not os.path.exists(file_path):
         print(f"오류: '{file_path}' 파일을 찾을 수 없습니다.")
         return None
@@ -47,7 +48,7 @@ def create_type_plotly_chart(year):
     fig = go.Figure(go.Bar(
         x=df[category_col],
         y=df[employment_col_name],
-        text=df[employment_col_name].round(1),
+        text=(df[employment_col_name].astype('float64')).round(1),
         textposition='auto',
         marker_color=px.colors.qualitative.Plotly # Plotly 기본 색상 팔레트 사용
     ))
