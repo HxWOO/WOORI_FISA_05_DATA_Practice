@@ -5,7 +5,14 @@ import plotly.graph_objects as go
 from .constants import province_geojson_name_map, reverse_province_geojson_name_map, province_coords, area_data
 
 def plot_animated_pie_chart(df_national_total):
-    st.write("### 연도별 전국 장애유형별 인구 비율 (성별: 계) - 애니메이션")
+
+    # Initialize session state for options
+    if 'pie_chart_options' not in st.session_state:
+        st.session_state.pie_chart_options = {
+            'threshold_percentage': 4.0,
+            'animation_duration': 400,
+            'selected_palette': 'Alphabet'
+        }
 
     df_national_total_filtered_all_years = df_national_total[df_national_total['장애유형별'] != '합계'].copy()
     df_national_total_melted = df_national_total_filtered_all_years.melt(id_vars=['시도별', '성별', '장애유형별'],
@@ -14,14 +21,16 @@ def plot_animated_pie_chart(df_national_total):
 
     years = sorted(df_national_total_melted['연도'].unique())
 
-    threshold_percentage = st.slider("파이 차트 '기타' 그룹화 임계값 (%)", 0.0, 10.0, 4.0, 0.1) / 100
-    animation_duration = st.slider("애니메이션 속도 (ms)", 100, 2000, 400, 100)
+    # Use options from session state
+    options = st.session_state.pie_chart_options
+    threshold_percentage = options['threshold_percentage'] / 100
+    animation_duration = options['animation_duration']
+    selected_palette = options['selected_palette']
 
     color_palettes = [
         "Plotly", "D3", "G10", "T10", "Alphabet", "Dark24", "Light24",
         "Set1", "Set2", "Set3", "Pastel1", "Pastel2"
     ]
-    selected_palette = st.selectbox("색상 팔레트 선택", color_palettes, index=color_palettes.index("Alphabet"))
 
     all_disability_types = sorted(df_national_total_melted['장애유형별'].unique())
     if "기타" not in all_disability_types:
@@ -97,7 +106,7 @@ def plot_animated_pie_chart(df_national_total):
                      customdata=initial_year_data[['hover_detail']].values,
                      hovertemplate="<b>%{label}</b><br>인구수: %{value:,}<br>비율: %{percent}%{customdata[0]}")],
         layout=go.Layout(
-            title_text='전국 장애유형별 인구 비율 (성별: 계)',
+            title_text='전국 장애유형별 인구 비율',
             legend=dict(x=1.02, y=1, xanchor='left', yanchor='top'),
             updatemenus=[dict(
                 type="buttons",
@@ -127,3 +136,27 @@ def plot_animated_pie_chart(df_national_total):
 
     fig_pie_animated.update_layout(sliders=sliders)
     st.plotly_chart(fig_pie_animated, use_container_width=True)
+
+    with st.expander("차트 옵션"):
+        st.slider(
+            "파이 차트 '기타' 그룹화 임계값 (%)", 0.0, 10.0,
+            options['threshold_percentage'], 0.1,
+            key='threshold_slider_pie',
+            help="값이 작은 항목들을 '기타'로 묶는 기준이 되는 비율(%)입니다."
+        )
+        st.slider(
+            "애니메이션 속도 (ms)", 100, 2000,
+            options['animation_duration'], 100,
+            key='animation_slider_pie',
+            help="애니메이션의 프레임 전환 속도를 밀리초(ms) 단위로 설정합니다."
+        )
+        st.selectbox(
+            "색상 팔레트 선택", color_palettes,
+            index=color_palettes.index(options['selected_palette']),
+            key='palette_selector_pie'
+        )
+
+        # Update session state if widgets change
+        options['threshold_percentage'] = st.session_state.threshold_slider_pie
+        options['animation_duration'] = st.session_state.animation_slider_pie
+        options['selected_palette'] = st.session_state.palette_selector_pie
