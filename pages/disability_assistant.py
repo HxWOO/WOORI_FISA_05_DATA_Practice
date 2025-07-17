@@ -4,6 +4,15 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 
+
+# 사이드바 페이지 링크 추가
+st.sidebar.header("분석 페이지")
+st.sidebar.page_link("app.py", label="홈", icon="🏠")
+st.sidebar.page_link("pages/disability_assistant.py", label="복지", icon="🤝")
+st.sidebar.page_link("pages/disabled_population_statistics.py", label="인구분포", icon="👨‍👩‍👧‍👦")
+st.sidebar.page_link("pages/employ.py", label="고용 및 경제활동", icon="💼")
+st.sidebar.page_link("pages/facility.py", label="관련 시설", icon="🏥")
+
 # 데이터 불러오기
 file_path = f"{Path(__file__).parent.parent}/data/Disability_Assistance.csv"
 
