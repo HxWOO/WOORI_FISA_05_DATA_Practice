@@ -16,6 +16,8 @@ from employ_analysis.visualize_type_plotly import create_type_plotly_chart
 from employ_analysis.visualize_region_plotly import create_region_plotly_chart
 from employ_analysis.visualize_sex_pie_plotly import create_sex_pie_chart
 from employ_analysis.visualize_total_eco_activity_time_series import create_total_activity_time_series_chart
+import employ_analysis.visualize_total_eco_activity_time_series as vteats
+print(f"Available in visualize_total_eco_activity_time_series: {dir(vteats)}")
 
 st.set_page_config(
     page_title="시각화 자료",
