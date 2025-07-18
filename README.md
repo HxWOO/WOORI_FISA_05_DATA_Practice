@@ -106,6 +106,20 @@ C:/devs/data_practice/
 
 - **Streamlit Cloud 배포 링크**: [https://woori-fisa-05-datapractice.streamlit.app/](https://woori-fisa-05-datapractice.streamlit.app/)
 
+## 📊 데이터 출처
+
+- **시군구별, 장애정도별, 성별 등록장애인수 (국가통계포털)**
+  - 출처: [KOSIS 국가통계포털](https://kosis.kr/statHtml/statHtml.do?orgId=117&tblId=DT_11761_N001&conn_path=I2)
+  - 데이터명: 보건복지부, 「장애인현황」, 2024, 2025.07.18, 전국 장애유형별, 성별 등록장애인수
+
+- **보건복지부_장애인복지관 현황 (공공데이터포털)**
+  - 출처: [공공데이터포털](https://www.data.go.kr/data/15044286/fileData.do)
+  - 데이터명: 보건복지부_장애인복지관 현황_20240425_utf8.csv
+
+- **보건복지부_장애인연금 수급자 현황_시도별 (공공데이터포털)**
+  - 출처: [공공데이터포털](https://www.data.go.kr/data/15044286/fileData.do)
+  - 데이터명: 보건복지부_장애인연금 수급자 현황_시도별_20231231
+
 ## 🤯 트러블 슈팅
 
 프로젝트 진행 중 발생했던 주요 문제와 해결 과정입니다.
