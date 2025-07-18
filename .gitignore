@@ -110,5 +110,4 @@ dmypy.json
 .vscode/
 
 # Analysis results
-results/
 see.py
